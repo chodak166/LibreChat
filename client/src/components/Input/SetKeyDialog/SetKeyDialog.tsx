@@ -39,6 +39,7 @@ const EXPIRY = {
   ONE_DAY: { display: 'in 1 day', value: 24 * 60 * 60 * 1000 },
   ONE_WEEK: { display: 'in 7 days', value: 7 * 24 * 60 * 60 * 1000 },
   ONE_MONTH: { display: 'in 30 days', value: 30 * 24 * 60 * 60 * 1000 },
+  ONE_YEAR: { display: 'in 365 days', value: 365 * 24 * 60 * 60 * 1000 },
 };
 
 const SetKeyDialog = ({
