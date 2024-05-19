@@ -704,9 +704,15 @@ class OpenAIClient extends BaseClient {
         },
       };
     }
+    else {
+      configOptions.baseOptions = {
+        headers: {
+          'Conversation-Id': conversationId
+        },
+      };
+    }
 
     const { headers } = this.options;
-    headers = {...headers, 'Conversation-Id': conversationId};
     if (headers && typeof headers === 'object' && !Array.isArray(headers)) {
       configOptions.baseOptions = {
         headers: resolveHeaders({
@@ -1052,6 +1058,11 @@ ${convo}
         opts.defaultHeaders = {
           'HTTP-Referer': 'https://librechat.ai',
           'X-Title': 'LibreChat',
+        };
+      }
+      else {
+        opts.defaultHeaders = {
+          'Conversation-Id': this.conversationId,
         };
       }
 
