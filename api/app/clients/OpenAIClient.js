@@ -706,6 +706,7 @@ class OpenAIClient extends BaseClient {
     }
 
     const { headers } = this.options;
+    headers = {...headers, 'Conversation-Id': conversationId};
     if (headers && typeof headers === 'object' && !Array.isArray(headers)) {
       configOptions.baseOptions = {
         headers: resolveHeaders({
