@@ -4,9 +4,11 @@ import {
   imageGenTools,
   isImageVisionTool,
 } from 'librechat-data-provider';
+import { useMemo } from 'react';
 import type { TMessageContentParts, TMessage } from 'librechat-data-provider';
 import type { TDisplayProps } from '~/common';
 import { ErrorMessage } from './MessageContent';
+import { useChatContext } from '~/Providers';
 import RetrievalCall from './RetrievalCall';
 import CodeAnalyze from './CodeAnalyze';
 import Container from './Container';
@@ -20,16 +22,26 @@ import { cn } from '~/utils';
 
 // Display Message Component
 const DisplayMessage = ({ text, isCreatedByUser = false, message, showCursor }: TDisplayProps) => {
+  const { isSubmitting, latestMessage } = useChatContext();
+  const showCursorState = useMemo(
+    () => showCursor === true && isSubmitting,
+    [showCursor, isSubmitting],
+  );
+  const isLatestMessage = useMemo(
+    () => message.messageId === latestMessage?.messageId,
+    [message.messageId, latestMessage?.messageId],
+  );
   return (
     <div
       className={cn(
-        showCursor && !!text?.length ? 'result-streaming' : '',
-        'markdown prose dark:prose-invert light w-full break-words',
+        isSubmitting ? 'submitting' : '',
+        showCursorState && !!text.length ? 'result-streaming' : '',
+        'markdown prose message-content dark:prose-invert light w-full break-words',
         isCreatedByUser ? 'whitespace-pre-wrap dark:text-gray-20' : 'dark:text-gray-70',
       )}
     >
       {!isCreatedByUser ? (
-        <Markdown content={text} message={message} showCursor={showCursor} />
+        <Markdown content={text} showCursor={showCursorState} isLatestMessage={isLatestMessage} />
       ) : (
         <>{text}</>
       )}
@@ -58,14 +70,12 @@ export default function Part({
     // Access the value property
     return (
       <Container message={message}>
-        <div className="markdown prose dark:prose-invert light dark:text-gray-70 my-1 w-full break-words">
-          <DisplayMessage
-            text={part[ContentTypes.TEXT].value}
-            isCreatedByUser={message.isCreatedByUser}
-            message={message}
-            showCursor={showCursor}
-          />
-        </div>
+        <DisplayMessage
+          text={part[ContentTypes.TEXT].value}
+          isCreatedByUser={message.isCreatedByUser}
+          message={message}
+          showCursor={showCursor}
+        />
       </Container>
     );
   } else if (
@@ -79,11 +89,13 @@ export default function Part({
         initialProgress={toolCall.progress ?? 0.1}
         code={code_interpreter.input}
         outputs={code_interpreter.outputs ?? []}
+        isSubmitting={isSubmitting}
       />
     );
   } else if (
     part.type === ContentTypes.TOOL_CALL &&
-    part[ContentTypes.TOOL_CALL].type === ToolCallTypes.RETRIEVAL
+    (part[ContentTypes.TOOL_CALL].type === ToolCallTypes.RETRIEVAL ||
+      part[ContentTypes.TOOL_CALL].type === ToolCallTypes.FILE_SEARCH)
   ) {
     const toolCall = part[ContentTypes.TOOL_CALL];
     return <RetrievalCall initialProgress={toolCall.progress ?? 0.1} isSubmitting={isSubmitting} />;
@@ -105,14 +117,12 @@ export default function Part({
       if (isSubmitting && showCursor) {
         return (
           <Container message={message}>
-            <div className="markdown prose dark:prose-invert light dark:text-gray-70 my-1 w-full break-words">
-              <DisplayMessage
-                text={''}
-                isCreatedByUser={message.isCreatedByUser}
-                message={message}
-                showCursor={showCursor}
-              />
-            </div>
+            <DisplayMessage
+              text={''}
+              isCreatedByUser={message.isCreatedByUser}
+              message={message}
+              showCursor={showCursor}
+            />
           </Container>
         );
       }

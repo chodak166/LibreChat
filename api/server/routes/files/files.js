@@ -1,13 +1,18 @@
 const fs = require('fs').promises;
 const express = require('express');
-const { isUUID, FileSources } = require('librechat-data-provider');
+const {
+  isUUID,
+  checkOpenAIStorage,
+  FileSources,
+  EModelEndpoint,
+} = require('librechat-data-provider');
 const {
   filterFile,
   processFileUpload,
   processDeleteRequest,
 } = require('~/server/services/Files/process');
-const { initializeClient } = require('~/server/services/Endpoints/assistants');
 const { getStrategyFunctions } = require('~/server/services/Files/strategies');
+const { getOpenAIClient } = require('~/server/controllers/assistants/helpers');
 const { getFiles } = require('~/models/File');
 const { logger } = require('~/config');
 
@@ -89,7 +94,7 @@ router.get('/download/:userId/:file_id', async (req, res) => {
       return res.status(403).send('Forbidden');
     }
 
-    if (file.source === FileSources.openai && !file.model) {
+    if (checkOpenAIStorage(file.source) && !file.model) {
       logger.warn(`${errorPrefix} has no associated model: ${file_id}`);
       return res.status(400).send('The model used when creating this file is not available');
     }
@@ -110,9 +115,18 @@ router.get('/download/:userId/:file_id', async (req, res) => {
     let passThrough;
     /** @type {ReadableStream | undefined} */
     let fileStream;
-    if (file.source === FileSources.openai) {
+
+    if (checkOpenAIStorage(file.source)) {
       req.body = { model: file.model };
-      const { openai } = await initializeClient({ req, res });
+      const endpointMap = {
+        [FileSources.openai]: EModelEndpoint.assistants,
+        [FileSources.azure]: EModelEndpoint.azureAssistants,
+      };
+      const { openai } = await getOpenAIClient({
+        req,
+        res,
+        overrideEndpoint: endpointMap[file.source],
+      });
       logger.debug(`Downloading file ${file_id} from OpenAI`);
       passThrough = await getDownloadStream(file_id, openai);
       setHeaders();

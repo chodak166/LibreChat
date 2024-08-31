@@ -1,20 +1,59 @@
 const {
-  AuthTypeEnum,
-  EModelEndpoint,
-  actionDomainSeparator,
   CacheKeys,
   Constants,
+  AuthTypeEnum,
+  actionDelimiter,
+  isImageVisionTool,
+  actionDomainSeparator,
 } = require('librechat-data-provider');
 const { encryptV2, decryptV2 } = require('~/server/utils/crypto');
-const { getActions } = require('~/models/Action');
+const { getActions, deleteActions } = require('~/models/Action');
+const { deleteAssistant } = require('~/models/Assistant');
 const { getLogStores } = require('~/cache');
 const { logger } = require('~/config');
+
+const toolNameRegex = /^[a-zA-Z0-9_-]+$/;
+
+/**
+ * Validates tool name against regex pattern and updates if necessary.
+ * @param {object} params - The parameters for the function.
+ * @param {object} params.req - Express Request.
+ * @param {FunctionTool} params.tool - The tool object.
+ * @param {string} params.assistant_id - The assistant ID
+ * @returns {object|null} - Updated tool object or null if invalid and not an action.
+ */
+const validateAndUpdateTool = async ({ req, tool, assistant_id }) => {
+  let actions;
+  if (isImageVisionTool(tool)) {
+    return null;
+  }
+  if (!toolNameRegex.test(tool.function.name)) {
+    const [functionName, domain] = tool.function.name.split(actionDelimiter);
+    actions = await getActions({ assistant_id, user: req.user.id }, true);
+    const matchingActions = actions.filter((action) => {
+      const metadata = action.metadata;
+      return metadata && metadata.domain === domain;
+    });
+    const action = matchingActions[0];
+    if (!action) {
+      return null;
+    }
+
+    const parsedDomain = await domainParser(req, domain, true);
+
+    if (!parsedDomain) {
+      return null;
+    }
+
+    tool.function.name = `${functionName}${actionDelimiter}${parsedDomain}`;
+  }
+  return tool;
+};
 
 /**
  * Encodes or decodes a domain name to/from base64, or replacing periods with a custom separator.
  *
- * Necessary because Azure OpenAI Assistants API doesn't support periods in function
- * names due to `[a-zA-Z0-9_-]*` Regex Validation, limited to a 64-character maximum.
+ * Necessary due to `[a-zA-Z0-9_-]*` Regex Validation, limited to a 64-character maximum.
  *
  * @param {Express.Request} req - The Express Request object.
  * @param {string} domain - The domain name to encode/decode.
@@ -24,10 +63,6 @@ const { logger } = require('~/config');
 async function domainParser(req, domain, inverse = false) {
   if (!domain) {
     return;
-  }
-
-  if (!req.app.locals[EModelEndpoint.azureOpenAI]?.assistants) {
-    return domain;
   }
 
   const domainsCache = getLogStores(CacheKeys.ENCODED_DOMAINS);
@@ -81,8 +116,8 @@ async function loadActionSets(searchParams) {
  * @param {ActionRequest} params.requestBuilder - The ActionRequest builder class to execute the API call.
  * @returns { { _call: (toolInput: Object) => unknown} } An object with `_call` method to execute the tool input.
  */
-function createActionTool({ action, requestBuilder }) {
-  action.metadata = decryptMetadata(action.metadata);
+async function createActionTool({ action, requestBuilder }) {
+  action.metadata = await decryptMetadata(action.metadata);
   const _call = async (toolInput) => {
     try {
       requestBuilder.setParams(toolInput);
@@ -118,23 +153,23 @@ function createActionTool({ action, requestBuilder }) {
  * @param {ActionMetadata} metadata - The action metadata to encrypt.
  * @returns {ActionMetadata} The updated action metadata with encrypted values.
  */
-function encryptMetadata(metadata) {
+async function encryptMetadata(metadata) {
   const encryptedMetadata = { ...metadata };
 
   // ServiceHttp
   if (metadata.auth && metadata.auth.type === AuthTypeEnum.ServiceHttp) {
     if (metadata.api_key) {
-      encryptedMetadata.api_key = encryptV2(metadata.api_key);
+      encryptedMetadata.api_key = await encryptV2(metadata.api_key);
     }
   }
 
   // OAuth
   else if (metadata.auth && metadata.auth.type === AuthTypeEnum.OAuth) {
     if (metadata.oauth_client_id) {
-      encryptedMetadata.oauth_client_id = encryptV2(metadata.oauth_client_id);
+      encryptedMetadata.oauth_client_id = await encryptV2(metadata.oauth_client_id);
     }
     if (metadata.oauth_client_secret) {
-      encryptedMetadata.oauth_client_secret = encryptV2(metadata.oauth_client_secret);
+      encryptedMetadata.oauth_client_secret = await encryptV2(metadata.oauth_client_secret);
     }
   }
 
@@ -147,33 +182,52 @@ function encryptMetadata(metadata) {
  * @param {ActionMetadata} metadata - The action metadata to decrypt.
  * @returns {ActionMetadata} The updated action metadata with decrypted values.
  */
-function decryptMetadata(metadata) {
+async function decryptMetadata(metadata) {
   const decryptedMetadata = { ...metadata };
 
   // ServiceHttp
   if (metadata.auth && metadata.auth.type === AuthTypeEnum.ServiceHttp) {
     if (metadata.api_key) {
-      decryptedMetadata.api_key = decryptV2(metadata.api_key);
+      decryptedMetadata.api_key = await decryptV2(metadata.api_key);
     }
   }
 
   // OAuth
   else if (metadata.auth && metadata.auth.type === AuthTypeEnum.OAuth) {
     if (metadata.oauth_client_id) {
-      decryptedMetadata.oauth_client_id = decryptV2(metadata.oauth_client_id);
+      decryptedMetadata.oauth_client_id = await decryptV2(metadata.oauth_client_id);
     }
     if (metadata.oauth_client_secret) {
-      decryptedMetadata.oauth_client_secret = decryptV2(metadata.oauth_client_secret);
+      decryptedMetadata.oauth_client_secret = await decryptV2(metadata.oauth_client_secret);
     }
   }
 
   return decryptedMetadata;
 }
 
+/**
+ * Deletes an action and its corresponding assistant.
+ * @param {Object} params - The parameters for the function.
+ * @param {OpenAIClient} params.req - The Express Request object.
+ * @param {string} params.assistant_id - The ID of the assistant.
+ */
+const deleteAssistantActions = async ({ req, assistant_id }) => {
+  try {
+    await deleteActions({ assistant_id, user: req.user.id });
+    await deleteAssistant({ assistant_id, user: req.user.id });
+  } catch (error) {
+    const message = 'Trouble deleting Assistant Actions for Assistant ID: ' + assistant_id;
+    logger.error(message, error);
+    throw new Error(message);
+  }
+};
+
 module.exports = {
-  loadActionSets,
+  deleteAssistantActions,
+  validateAndUpdateTool,
   createActionTool,
   encryptMetadata,
   decryptMetadata,
+  loadActionSets,
   domainParser,
 };

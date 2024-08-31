@@ -39,57 +39,69 @@ const filteredTools = new Set([
  * @param {object} params - The parameters for the function.
  * @param {string} params.directory - The directory path where the tools are located.
  * @param {Array<string>} [params.adminFilter=[]] - Array of admin-defined tool keys to exclude from loading.
+ * @param {Array<string>} [params.adminIncluded=[]] - Array of admin-defined tool keys to include from loading.
  * @returns {Record<string, FunctionTool>} An object mapping each tool's plugin key to its instance.
  */
-function loadAndFormatTools({ directory, adminFilter = [] }) {
+function loadAndFormatTools({ directory, adminFilter = [], adminIncluded = [] }) {
   const filter = new Set([...adminFilter, ...filteredTools]);
+  const included = new Set(adminIncluded);
   const tools = [];
   /* Structured Tools Directory */
   const files = fs.readdirSync(directory);
 
-  for (const file of files) {
-    if (file.endsWith('.js') && !filter.has(file)) {
-      const filePath = path.join(directory, file);
-      let ToolClass = null;
-      try {
-        ToolClass = require(filePath);
-      } catch (error) {
-        logger.error(`[loadAndFormatTools] Error loading tool from ${filePath}:`, error);
-        continue;
-      }
-
-      if (!ToolClass) {
-        continue;
-      }
-
-      if (ToolClass.prototype instanceof StructuredTool) {
-        /** @type {StructuredTool | null} */
-        let toolInstance = null;
-        try {
-          toolInstance = new ToolClass({ override: true });
-        } catch (error) {
-          logger.error(
-            `[loadAndFormatTools] Error initializing \`${file}\` tool; if it requires authentication, is the \`override\` field configured?`,
-            error,
-          );
-          continue;
-        }
-
-        if (!toolInstance) {
-          continue;
-        }
-
-        const formattedTool = formatToOpenAIAssistantTool(toolInstance);
-        tools.push(formattedTool);
-      }
-    }
+  if (included.size > 0 && adminFilter.length > 0) {
+    logger.warn(
+      'Both `includedTools` and `filteredTools` are defined; `filteredTools` will be ignored.',
+    );
   }
 
-  /**
-   * Basic Tools; schema: { input: string }
-   */
-  const basicToolInstances = [new Calculator()];
+  for (const file of files) {
+    const filePath = path.join(directory, file);
+    if (!file.endsWith('.js') || (filter.has(file) && included.size === 0)) {
+      continue;
+    }
 
+    let ToolClass = null;
+    try {
+      ToolClass = require(filePath);
+    } catch (error) {
+      logger.error(`[loadAndFormatTools] Error loading tool from ${filePath}:`, error);
+      continue;
+    }
+
+    if (!ToolClass || !(ToolClass.prototype instanceof StructuredTool)) {
+      continue;
+    }
+
+    let toolInstance = null;
+    try {
+      toolInstance = new ToolClass({ override: true });
+    } catch (error) {
+      logger.error(
+        `[loadAndFormatTools] Error initializing \`${file}\` tool; if it requires authentication, is the \`override\` field configured?`,
+        error,
+      );
+      continue;
+    }
+
+    if (!toolInstance) {
+      continue;
+    }
+
+    if (filter.has(toolInstance.name) && included.size === 0) {
+      continue;
+    }
+
+    if (included.size > 0 && !included.has(file) && !included.has(toolInstance.name)) {
+      continue;
+    }
+
+    const formattedTool = formatToOpenAIAssistantTool(toolInstance);
+    tools.push(formattedTool);
+  }
+
+  /** Basic Tools; schema: { input: string } */
+  const basicToolInstances = [new Calculator()];
   for (const toolInstance of basicToolInstances) {
     const formattedTool = formatToOpenAIAssistantTool(toolInstance);
     tools.push(formattedTool);
@@ -323,7 +335,7 @@ async function processRequiredActions(client, requiredActions) {
         continue;
       }
 
-      tool = createActionTool({ action: actionSet, requestBuilder });
+      tool = await createActionTool({ action: actionSet, requestBuilder });
       isActionTool = !!tool;
       ActionToolMap[currentAction.tool] = tool;
     }
@@ -332,29 +344,26 @@ async function processRequiredActions(client, requiredActions) {
       currentAction.toolInput = currentAction.toolInput.input;
     }
 
-    try {
-      const promise = tool
-        ._call(currentAction.toolInput)
-        .then(handleToolOutput)
-        .catch((error) => {
-          logger.error(`Error processing tool ${currentAction.tool}`, error);
-          return {
-            tool_call_id: currentAction.toolCallId,
-            output: `Error processing tool ${currentAction.tool}: ${redactMessage(error.message)}`,
-          };
-        });
-      promises.push(promise);
-    } catch (error) {
+    const handleToolError = (error) => {
       logger.error(
         `tool_call_id: ${currentAction.toolCallId} | Error processing tool ${currentAction.tool}`,
         error,
       );
-      promises.push(
-        Promise.resolve({
-          tool_call_id: currentAction.toolCallId,
-          error: error.message,
-        }),
-      );
+      return {
+        tool_call_id: currentAction.toolCallId,
+        output: `Error processing tool ${currentAction.tool}: ${redactMessage(error.message, 256)}`,
+      };
+    };
+
+    try {
+      const promise = tool
+        ._call(currentAction.toolInput)
+        .then(handleToolOutput)
+        .catch(handleToolError);
+      promises.push(promise);
+    } catch (error) {
+      const toolOutputError = handleToolError(error);
+      promises.push(Promise.resolve(toolOutputError));
     }
   }
 

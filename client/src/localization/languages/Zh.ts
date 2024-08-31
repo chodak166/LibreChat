@@ -11,6 +11,7 @@ export default {
   com_sidepanel_hide_panel: '隐藏侧边栏',
   com_sidepanel_attach_files: '附加文件',
   com_sidepanel_manage_files: '管理文件',
+  com_sidepanel_conversation_tags: '书签',
   com_assistants_capabilities: '功能',
   com_assistants_knowledge: '知识',
   com_assistants_knowledge_info: '如果您在“知识”中上传文件，与助手的对话可能包括文件内容。',
@@ -101,7 +102,6 @@ export default {
   com_ui_submit: '提交',
   com_ui_upload_success: '上传文件成功',
   com_ui_upload_error: '上传文件错误',
-  com_ui_upload_invalid: '无效的上传文件，请上传不超过2M大小的图片',
   com_ui_cancel: '取消',
   com_ui_save: '保存',
   com_ui_save_submit: '保存并提交',
@@ -132,8 +132,21 @@ export default {
   com_ui_assistants_output: '助手输出',
   com_ui_delete: '删除',
   com_ui_create: '创建',
+  com_ui_share: '分享',
+  com_ui_copy_link: '复制链接',
+  com_ui_update_link: '更新链接',
+  com_ui_create_link: '创建链接',
+  com_ui_share_link_to_chat: '分享链接到聊天',
+  com_ui_share_error: '分享聊天链接时发生错误',
+  com_ui_share_retrieve_error: '删除共享链接时出错。',
+  com_ui_share_delete_error: '删除共享链接时出错。',
+  com_ui_share_create_message: '您的名字及您在分享后添加的任何消息将保持私密。',
+  com_ui_share_created_message: '已创建到您聊天的共享链接。可以通过设置随时管理以前共享的聊天。',
+  com_ui_share_update_message: '您的名字、定制指令及您在分享后添加的任何消息将保持私密。',
+  com_ui_share_updated_message: '已更新到您聊天的共享链接。可以通过设置随时管理以前共享的聊天。',
+  com_ui_shared_link_not_found: '未找到共享链接',
   com_ui_delete_conversation: '删除对话？',
-  com_ui_delete_conversation_confirm: '这将删除',
+  com_ui_delete_confirm: '这将删除',
   com_ui_delete_assistant_confirm: '确定要删除此助手吗？该操作无法撤销。',
   com_ui_rename: '重命名',
   com_ui_archive: '归档',
@@ -147,6 +160,20 @@ export default {
   com_ui_upload_delay: '上传 "{0}" 时比预期花了更长时间。 文件正在进行检索索引，请稍候。',
   com_ui_privacy_policy: '隐私政策',
   com_ui_terms_of_service: '服务政策',
+  com_ui_bookmarks: '书签',
+  com_ui_bookmarks_rebuild: '重建',
+  com_ui_bookmarks_new: '新书签',
+  com_ui_bookmark_delete_confirm: '你确定要删除这个书签吗？',
+  com_ui_bookmarks_title: '标题',
+  com_ui_bookmarks_count: '计数',
+  com_ui_bookmarks_description: '描述',
+  com_ui_bookmarks_create_success: '书签创建成功',
+  com_ui_bookmarks_update_success: '书签更新成功',
+  com_ui_bookmarks_delete_success: '书签删除成功',
+  com_ui_bookmarks_create_error: '创建书签时出错',
+  com_ui_bookmarks_update_error: '更新书签时出错',
+  com_ui_bookmarks_delete_error: '删除书签时出错',
+  com_ui_bookmarks_add_to_conversation: '添加到当前对话',
   com_auth_error_login: '无法登录，请确认提供的账户密码正确，并重新尝试。',
   com_auth_error_login_rl: '尝试登录次数过多，请稍后再试。',
   com_auth_error_login_ban: '根据我们的服务规则，您的帐号被暂时禁用。',
@@ -386,12 +413,20 @@ export default {
   com_nav_export_recursive_or_sequential: '递归或顺序？',
   com_nav_export_recursive: '递归',
   com_nav_export_conversation: '导出对话',
+  com_nav_export: '导出',
+  com_nav_shared_links: '共享链接',
+  com_nav_shared_links_manage: '管理',
+  com_nav_shared_links_empty: '您没有共享链接。',
+  com_nav_shared_links_name: '名称',
+  com_nav_shared_links_date_shared: '共享日期',
   com_nav_my_files: '我的文件',
   com_nav_theme: '主题',
   com_nav_theme_system: '跟随系统设置',
   com_nav_theme_dark: '暗色主题',
   com_nav_theme_light: '亮色主题',
+  com_nav_font_size: '字体大小:',
   com_nav_user_name_display: '在消息中显示用户名',
+  com_nav_save_drafts: '保存草稿本地',
   com_nav_show_code: '使用代码解释器时始终显示代码',
   com_nav_clear_all_chats: '清空所有对话',
   com_nav_confirm_clear: '确认清空',
@@ -412,11 +447,42 @@ export default {
   com_nav_help_faq: '帮助',
   com_nav_settings: '设置',
   com_nav_search_placeholder: '搜索对话及对话内容',
+  com_nav_info_bookmarks_rebuild:
+    '如果书签计数不正确，请重新构建书签信息。书签计数将被重新计算，数据将恢复到其正确状态。',
   com_nav_setting_general: '通用',
   com_nav_setting_beta: '实验特性',
   com_nav_setting_data: '数据管理',
   com_nav_setting_account: '账户',
   /* The following are AI Translated */
+  com_assistants_file_search: '文件搜索',
+  com_assistants_file_search_info:
+    '暂不支持为文件搜索附加向量存储。您可以从提供程序游乐场附加它们,或者在线程基础上为文件搜索附加文件。',
+  com_assistants_non_retrieval_model: '此模型未启用文件搜索功能。请选择其他模型。',
+  com_ui_attach_error_openai: '无法将助手文件附加到其他渠道',
+  com_ui_attach_warn_endpoint: '不兼容的工具可能会忽略非助手文件',
+  com_ui_assistant_deleted: '助手已成功删除',
+  com_ui_assistant_delete_error: '删除助手时出错。',
+  com_ui_date_october: '十月',
+  com_ui_date_november: '十一月',
+  com_ui_date_december: '十二月',
+  com_ui_copied: '已复制！',
+  com_ui_copy_code: '复制代码',
+  com_nav_source_chat: '查看源代码对话',
+  com_ui_date_today: '今天',
+  com_ui_date_yesterday: '昨天',
+  com_ui_date_previous_7_days: '过去7天',
+  com_ui_date_previous_30_days: '过去30天',
+  com_ui_date_january: '一月',
+  com_ui_date_february: '二月',
+  com_ui_date_march: '三月',
+  com_ui_date_april: '四月',
+  com_ui_date_may: '五月',
+  com_ui_date_june: '六月',
+  com_ui_date_july: '七月',
+  com_ui_date_august: '八月',
+  com_ui_date_september: '九月',
+  com_ui_nothing_found: '未找到任何内容',
+  com_ui_go_to_conversation: '转到对话',
   com_error_moderation:
     '很抱歉,您提交的内容被我们的审核系统标记为不符合社区指引。我们无法就此特定主题继续交流。如果您有任何其他问题或想探讨的话题,请编辑您的消息或开启新的对话。',
   com_error_no_user_key: '没有找到密钥。请提供密钥后重试。',
@@ -459,7 +525,6 @@ export default {
   com_ui_import_conversation_file_type_error: '不支持的导入类型',
   com_ui_min_tags: '无法再移除更多值,至少需要保留{0}个。',
   com_ui_max_tags: '最多允许{0}个,使用最新值。',
-  com_endpoint_messages: '消息',
   com_endpoint_context_tokens: '最大上下文词元数',
   com_endpoint_context_info:
     '可用于上下文的最大词元数。用于控制每个请求发送的词元数量。如果未指定,将根据已知模型的上下文大小使用系统默认值。设置较高的值可能会导致错误和/或更高的词元成本。',
@@ -524,6 +589,10 @@ export const comparisons = {
   com_sidepanel_manage_files: {
     english: 'Manage Files',
     translated: '管理文件',
+  },
+  com_sidepanel_conversation_tags: {
+    english: 'Bookmarks',
+    translated: '书签',
   },
   com_assistants_capabilities: {
     english: 'Capabilities',
@@ -1007,11 +1076,65 @@ export const comparisons = {
     english: 'Create',
     translated: '创建',
   },
+  com_ui_share: {
+    english: 'Share',
+    translated: '分享',
+  },
+  com_ui_copy_link: {
+    english: 'Copy link',
+    translated: '复制链接',
+  },
+  com_ui_update_link: {
+    english: 'Update link',
+    translated: '更新链接',
+  },
+  com_ui_create_link: {
+    english: 'Create link',
+    translated: '创建链接',
+  },
+  com_ui_share_link_to_chat: {
+    english: 'Share link to chat',
+    translated: '分享链接到聊天',
+  },
+  com_ui_share_retrieve_error: {
+    english: 'There was an error deleting the shared link.',
+    translated: '删除共享链接时出错。',
+  },
+  com_ui_share_delete_error: {
+    english: 'There was an error deleting the shared link.',
+    translated: '删除共享链接时出错。',
+  },
+  com_ui_share_error: {
+    english: 'There was an error sharing the chat link',
+    translated: '分享聊天链接时发生错误',
+  },
+  com_ui_share_create_message: {
+    english: 'Your name and any messages you add after sharing stay private.',
+    translated: '您的名字及您在分享后添加的任何消息将保持私密。',
+  },
+  com_ui_share_created_message: {
+    english:
+      'A shared link to your chat has been created. Manage previously shared chats at any time via Settings.',
+    translated: '已创建到您聊天的共享链接。可以通过设置随时管理以前共享的聊天。',
+  },
+  com_ui_share_update_message: {
+    english: 'Your name, custom instructions, and any messages you add after sharing stay private.',
+    translated: '您的名字、定制指令及您在分享后添加的任何消息将保持私密。',
+  },
+  com_ui_share_updated_message: {
+    english:
+      'A shared link to your chat has been updated. Manage previously shared chats at any time via Settings.',
+    translated: '已更新到您聊天的共享链接。可以通过设置随时管理以前共享的聊天。',
+  },
+  com_ui_shared_link_not_found: {
+    english: 'Shared link not found',
+    translated: '未找到共享链接',
+  },
   com_ui_delete_conversation: {
     english: 'Delete chat?',
     translated: '删除对话？',
   },
-  com_ui_delete_conversation_confirm: {
+  com_ui_delete_confirm: {
     english: 'This will delete',
     translated: '这将删除',
   },
@@ -1067,6 +1190,62 @@ export const comparisons = {
   com_ui_terms_of_service: {
     english: 'Terms of service',
     translated: '服务政策',
+  },
+  com_ui_bookmarks: {
+    english: 'Bookmarks',
+    translated: '书签',
+  },
+  com_ui_bookmarks_rebuild: {
+    english: 'Rebuild',
+    translated: '重建',
+  },
+  com_ui_bookmarks_new: {
+    english: 'New Bookmark',
+    translated: '新书签',
+  },
+  com_ui_bookmark_delete_confirm: {
+    english: 'Are you sure you want to delete this bookmark?',
+    translated: '你确定要删除这个书签吗？',
+  },
+  com_ui_bookmarks_title: {
+    english: 'Title',
+    translated: '标题',
+  },
+  com_ui_bookmarks_count: {
+    english: 'Count',
+    translated: '计数',
+  },
+  com_ui_bookmarks_description: {
+    english: 'Description',
+    translated: '描述',
+  },
+  com_ui_bookmarks_create_success: {
+    english: 'Bookmark created successfully',
+    translated: '书签创建成功',
+  },
+  com_ui_bookmarks_update_success: {
+    english: 'Bookmark updated successfully',
+    translated: '书签更新成功',
+  },
+  com_ui_bookmarks_delete_success: {
+    english: 'Bookmark deleted successfully',
+    translated: '书签删除成功',
+  },
+  com_ui_bookmarks_create_error: {
+    english: 'There was an error creating the bookmark',
+    translated: '创建书签时出错',
+  },
+  com_ui_bookmarks_update_error: {
+    english: 'There was an error updating the bookmark',
+    translated: '更新书签时出错',
+  },
+  com_ui_bookmarks_delete_error: {
+    english: 'There was an error deleting the bookmark',
+    translated: '删除书签时出错',
+  },
+  com_ui_bookmarks_add_to_conversation: {
+    english: 'Add to current conversation',
+    translated: '添加到当前对话',
   },
   com_auth_error_login: {
     english:
@@ -1976,6 +2155,30 @@ export const comparisons = {
     english: 'Export conversation',
     translated: '导出对话',
   },
+  com_nav_export: {
+    english: 'Export',
+    translated: '导出',
+  },
+  com_nav_shared_links: {
+    english: 'Shared links',
+    translated: '共享链接',
+  },
+  com_nav_shared_links_manage: {
+    english: 'Manage',
+    translated: '管理',
+  },
+  com_nav_shared_links_empty: {
+    english: 'You have no shared links.',
+    translated: '您没有共享链接。',
+  },
+  com_nav_shared_links_name: {
+    english: 'Name',
+    translated: '名称',
+  },
+  com_nav_shared_links_date_shared: {
+    english: 'Date shared',
+    translated: '共享日期',
+  },
   com_nav_my_files: {
     english: 'My Files',
     translated: '我的文件',
@@ -1999,6 +2202,10 @@ export const comparisons = {
   com_nav_user_name_display: {
     english: 'Display username in messages',
     translated: '在消息中显示用户名',
+  },
+  com_nav_save_drafts: {
+    english: 'Save drafts locally',
+    translated: '保存草稿本地',
   },
   com_nav_show_code: {
     english: 'Always show code when using code interpreter',
@@ -2080,6 +2287,12 @@ export const comparisons = {
     english: 'Search messages',
     translated: '搜索对话及对话内容',
   },
+  com_nav_info_bookmarks_rebuild: {
+    english:
+      'If the bookmark count is incorrect, please rebuild the bookmark information. The bookmark count will be recalculated and the data will be restored to its correct state.',
+    translated:
+      '如果书签计数不正确，请重新构建书签信息。书签计数将被重新计算，数据将恢复到其正确状态。',
+  },
   com_nav_setting_general: {
     english: 'General',
     translated: '通用',
@@ -2095,6 +2308,120 @@ export const comparisons = {
   com_nav_setting_account: {
     english: 'Account',
     translated: '账户',
+  },
+  com_assistants_file_search: {
+    english: 'File Search',
+    translated: '文件搜索',
+  },
+  com_assistants_file_search_info: {
+    english:
+      'Attaching vector stores for File Search is not yet supported. You can attach them from the Provider Playground or attach files to messages for file search on a thread basis.',
+    translated:
+      '暂不支持为文件搜索附加向量存储。您可以从提供程序游乐场附加它们,或者在线程基础上为文件搜索附加文件。',
+  },
+  com_assistants_non_retrieval_model: {
+    english: 'File search is not enabled on this model. Please select another model.',
+    translated: '此模型未启用文件搜索功能。请选择其他模型。',
+  },
+  com_ui_attach_error_openai: {
+    english: 'Cannot attach Assistant files to other endpoints',
+    translated: '无法将助手文件附加到其他渠道',
+  },
+  com_ui_attach_warn_endpoint: {
+    english: 'Non-Assistant files may be ignored without a compatible tool',
+    translated: '不兼容的工具可能会忽略非助手文件',
+  },
+  com_ui_assistant_deleted: {
+    english: 'Successfully deleted assistant',
+    translated: '助手已成功删除',
+  },
+  com_ui_assistant_delete_error: {
+    english: 'There was an error deleting the assistant',
+    translated: '删除助手时出错。',
+  },
+  com_ui_date_october: {
+    english: 'October',
+    translated: '十月',
+  },
+  com_ui_date_november: {
+    english: 'November',
+    translated: '十一月',
+  },
+  com_ui_date_december: {
+    english: 'December',
+    translated: '十二月',
+  },
+  com_ui_copied: {
+    english: 'Copied!',
+    translated: '已复制！',
+  },
+  com_ui_copy_code: {
+    english: 'Copy code',
+    translated: '复制代码',
+  },
+  com_nav_source_chat: {
+    english: 'View source chat',
+    translated: '查看源代码对话',
+  },
+  com_ui_date_today: {
+    english: 'Today',
+    translated: '今天',
+  },
+  com_ui_date_yesterday: {
+    english: 'Yesterday',
+    translated: '昨天',
+  },
+  com_ui_date_previous_7_days: {
+    english: 'Previous 7 days',
+    translated: '过去7天',
+  },
+  com_ui_date_previous_30_days: {
+    english: 'Previous 30 days',
+    translated: '过去30天',
+  },
+  com_ui_date_january: {
+    english: 'January',
+    translated: '一月',
+  },
+  com_ui_date_february: {
+    english: 'February',
+    translated: '二月',
+  },
+  com_ui_date_march: {
+    english: 'March',
+    translated: '三月',
+  },
+  com_ui_date_april: {
+    english: 'April',
+    translated: '四月',
+  },
+  com_ui_date_may: {
+    english: 'May',
+    translated: '五月',
+  },
+  com_ui_date_june: {
+    english: 'June',
+    translated: '六月',
+  },
+  com_ui_date_july: {
+    english: 'July',
+    translated: '七月',
+  },
+  com_ui_date_august: {
+    english: 'August',
+    translated: '八月',
+  },
+  com_ui_date_september: {
+    english: 'September',
+    translated: '九月',
+  },
+  com_ui_nothing_found: {
+    english: 'Nothing found',
+    translated: '未找到任何内容',
+  },
+  com_ui_go_to_conversation: {
+    english: 'Go to conversation',
+    translated: '转到对话',
   },
   com_error_moderation: {
     english:
@@ -2256,10 +2583,6 @@ export const comparisons = {
   com_ui_max_tags: {
     english: 'Maximum number allowed is {0}, using latest values.',
     translated: '最多允许{0}个,使用最新值。',
-  },
-  com_endpoint_messages: {
-    english: 'Messages',
-    translated: '消息',
   },
   com_endpoint_context_tokens: {
     english: 'Max Context Tokens',

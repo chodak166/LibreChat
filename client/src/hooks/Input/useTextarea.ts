@@ -1,15 +1,17 @@
 import debounce from 'lodash/debounce';
 import { useEffect, useRef, useCallback } from 'react';
-import { EModelEndpoint } from 'librechat-data-provider';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilValue, useRecoilState } from 'recoil';
+import { isAssistantsEndpoint } from 'librechat-data-provider';
 import type { TEndpointOption } from 'librechat-data-provider';
 import type { KeyboardEvent } from 'react';
 import { forceResize, insertTextAtCursor, getAssistantName } from '~/utils';
 import { useAssistantsMapContext } from '~/Providers/AssistantsMapContext';
 import useGetSender from '~/hooks/Conversations/useGetSender';
 import useFileHandling from '~/hooks/Files/useFileHandling';
+import { useInteractionHealthCheck } from '~/data-provider';
 import { useChatContext } from '~/Providers/ChatContext';
 import useLocalize from '~/hooks/useLocalize';
+import { globalAudioId } from '~/common';
 import store from '~/store';
 
 type KeyEvent = KeyboardEvent<HTMLTextAreaElement>;
@@ -28,6 +30,7 @@ export default function useTextarea({
   const isComposing = useRef(false);
   const { handleFiles } = useFileHandling();
   const assistantMap = useAssistantsMapContext();
+  const checkHealth = useInteractionHealthCheck();
   const enterToSend = useRecoilValue(store.enterToSend);
 
   const {
@@ -39,17 +42,25 @@ export default function useTextarea({
     setFilesLoading,
     setShowBingToneSetting,
   } = useChatContext();
-
-  const setShowMentionPopover = useSetRecoilState(store.showMentionPopoverFamily(index));
+  const [activePrompt, setActivePrompt] = useRecoilState(store.activePromptByIndex(index));
 
   const { conversationId, jailbreak, endpoint = '', assistant_id } = conversation || {};
   const isNotAppendable =
     ((latestMessage?.unfinished && !isSubmitting) || latestMessage?.error) &&
-    endpoint !== EModelEndpoint.assistants;
+    !isAssistantsEndpoint(endpoint);
   // && (conversationId?.length ?? 0) > 6; // also ensures that we don't show the wrong placeholder
 
-  const assistant = endpoint === EModelEndpoint.assistants && assistantMap?.[assistant_id ?? ''];
+  const assistant =
+    isAssistantsEndpoint(endpoint) && assistantMap?.[endpoint ?? '']?.[assistant_id ?? ''];
   const assistantName = (assistant && assistant?.name) || '';
+
+  useEffect(() => {
+    if (activePrompt && textAreaRef.current) {
+      insertTextAtCursor(textAreaRef.current, activePrompt);
+      forceResize(textAreaRef.current);
+      setActivePrompt(undefined);
+    }
+  }, [activePrompt, setActivePrompt, textAreaRef]);
 
   // auto focus to input, when enter a conversation.
   useEffect(() => {
@@ -86,9 +97,11 @@ export default function useTextarea({
       if (disabled) {
         return localize('com_endpoint_config_placeholder');
       }
+      const currentEndpoint = conversation?.endpoint ?? '';
+      const currentAssistantId = conversation?.assistant_id ?? '';
       if (
-        conversation?.endpoint === EModelEndpoint.assistants &&
-        (!conversation?.assistant_id || !assistantMap?.[conversation?.assistant_id ?? ''])
+        isAssistantsEndpoint(currentEndpoint) &&
+        (!currentAssistantId || !assistantMap?.[currentEndpoint]?.[currentAssistantId ?? ''])
       ) {
         return localize('com_endpoint_assistant_placeholder');
       }
@@ -97,12 +110,11 @@ export default function useTextarea({
         return localize('com_endpoint_message_not_appendable');
       }
 
-      const sender =
-        conversation?.endpoint === EModelEndpoint.assistants
-          ? getAssistantName({ name: assistantName, localize })
-          : getSender(conversation as TEndpointOption);
+      const sender = isAssistantsEndpoint(currentEndpoint)
+        ? getAssistantName({ name: assistantName, localize })
+        : getSender(conversation as TEndpointOption);
 
-      return `${localize('com_endpoint_message')} ${sender ? sender : 'ChatGPT'}…`;
+      return `${localize('com_endpoint_message')} ${sender ? sender : 'AI'}`;
     };
 
     const placeholder = getPlaceholderText();
@@ -116,7 +128,7 @@ export default function useTextarea({
 
       if (textAreaRef.current?.getAttribute('placeholder') !== placeholder) {
         textAreaRef.current?.setAttribute('placeholder', placeholder);
-        forceResize(textAreaRef);
+        forceResize(textAreaRef.current);
       }
     };
 
@@ -136,30 +148,16 @@ export default function useTextarea({
     assistantMap,
   ]);
 
-  const handleKeyUp = useCallback(() => {
-    const text = textAreaRef.current?.value;
-    if (!(text && text[text.length - 1] === '@')) {
-      return;
-    }
-
-    const startPos = textAreaRef.current?.selectionStart;
-    if (!startPos) {
-      return;
-    }
-
-    const isAtStart = startPos === 1;
-    const isPrecededBySpace = textAreaRef.current?.value.charAt(startPos - 2) === ' ';
-
-    setShowMentionPopover(isAtStart || isPrecededBySpace);
-  }, [textAreaRef, setShowMentionPopover]);
-
   const handleKeyDown = useCallback(
     (e: KeyEvent) => {
       if (e.key === 'Enter' && isSubmitting) {
         return;
       }
 
+      checkHealth();
+
       const isNonShiftEnter = e.key === 'Enter' && !e.shiftKey;
+      const isCtrlEnter = e.key === 'Enter' && e.ctrlKey;
 
       if (isNonShiftEnter && filesLoading) {
         e.preventDefault();
@@ -169,17 +167,29 @@ export default function useTextarea({
         e.preventDefault();
       }
 
-      if (e.key === 'Enter' && !enterToSend && textAreaRef.current) {
+      if (
+        e.key === 'Enter' &&
+        !enterToSend &&
+        !isCtrlEnter &&
+        textAreaRef.current &&
+        !isComposing?.current
+      ) {
+        e.preventDefault();
         insertTextAtCursor(textAreaRef.current, '\n');
-        forceResize(textAreaRef);
+        forceResize(textAreaRef.current);
         return;
       }
 
-      if (isNonShiftEnter && !isComposing?.current) {
+      if ((isNonShiftEnter || isCtrlEnter) && !isComposing?.current) {
+        const globalAudio = document.getElementById(globalAudioId) as HTMLAudioElement;
+        if (globalAudio) {
+          console.log('Unmuting global audio');
+          globalAudio.muted = false;
+        }
         submitButtonRef.current?.click();
       }
     },
-    [isSubmitting, filesLoading, enterToSend, textAreaRef, submitButtonRef],
+    [isSubmitting, checkHealth, filesLoading, enterToSend, textAreaRef, submitButtonRef],
   );
 
   const handleCompositionStart = () => {
@@ -201,21 +211,6 @@ export default function useTextarea({
         return;
       }
 
-      let richText = '';
-      let includedText = '';
-      const { types } = e.clipboardData;
-
-      if (types.indexOf('text/rtf') !== -1 || types.indexOf('Files') !== -1) {
-        e.preventDefault();
-        includedText = e.clipboardData.getData('text/plain');
-        richText = e.clipboardData.getData('text/rtf');
-      }
-
-      if (includedText && (e.clipboardData.files.length > 0 || richText)) {
-        insertTextAtCursor(textAreaRef.current, includedText);
-        forceResize(textAreaRef);
-      }
-
       if (e.clipboardData.files.length > 0) {
         setFilesLoading(true);
         const timestampedFiles: File[] = [];
@@ -234,7 +229,6 @@ export default function useTextarea({
   return {
     textAreaRef,
     handlePaste,
-    handleKeyUp,
     handleKeyDown,
     handleCompositionStart,
     handleCompositionEnd,

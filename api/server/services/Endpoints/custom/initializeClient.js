@@ -112,8 +112,17 @@ const initializeClient = async ({ req, res, endpointOption }) => {
     modelDisplayLabel: endpointConfig.modelDisplayLabel,
     titleMethod: endpointConfig.titleMethod ?? 'completion',
     contextStrategy: endpointConfig.summarize ? 'summarize' : null,
+    directEndpoint: endpointConfig.directEndpoint,
+    titleMessageRole: endpointConfig.titleMessageRole,
+    streamRate: endpointConfig.streamRate,
     endpointTokenConfig,
   };
+
+  /** @type {undefined | TBaseEndpoint} */
+  const allConfig = req.app.locals.all;
+  if (allConfig) {
+    customOptions.streamRate = allConfig.streamRate;
+  }
 
   const clientOptions = {
     reverseProxyUrl: baseURL ?? null,

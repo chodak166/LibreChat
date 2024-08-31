@@ -1,21 +1,22 @@
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { defaultOrderQuery } from 'librechat-data-provider';
+import { Constants, EModelEndpoint } from 'librechat-data-provider';
 import {
   useGetModelsQuery,
   useGetStartupConfig,
   useGetEndpointsQuery,
 } from 'librechat-data-provider/react-query';
 import type { TPreset } from 'librechat-data-provider';
-import { useGetConvoIdQuery, useListAssistantsQuery } from '~/data-provider';
+import { useNewConvo, useAppStartup, useAssistantListMap } from '~/hooks';
+import { useGetConvoIdQuery, useHealthCheck } from '~/data-provider';
 import { getDefaultModelSpec, getModelSpecIconURL } from '~/utils';
-import { useNewConvo, useAppStartup } from '~/hooks';
 import ChatView from '~/components/Chat/ChatView';
 import useAuthRedirect from './useAuthRedirect';
 import { Spinner } from '~/components/svg';
 import store from '~/store';
 
 export default function ChatRoute() {
+  useHealthCheck();
   const { data: startupConfig } = useGetStartupConfig();
   const { isAuthenticated, user } = useAuthRedirect();
   useAppStartup({ startupConfig, user });
@@ -32,23 +33,20 @@ export default function ChatRoute() {
     refetchOnMount: 'always',
   });
   const initialConvoQuery = useGetConvoIdQuery(conversationId ?? '', {
-    enabled: isAuthenticated && conversationId !== 'new',
+    enabled: isAuthenticated && conversationId !== Constants.NEW_CONVO,
   });
   const endpointsQuery = useGetEndpointsQuery({ enabled: isAuthenticated });
-  const { data: assistants = null } = useListAssistantsQuery(defaultOrderQuery, {
-    select: (res) =>
-      res.data.map(({ id, name, metadata, model }) => ({ id, name, metadata, model })),
-  });
+  const assistantListMap = useAssistantListMap();
 
   useEffect(() => {
-    if (
-      startupConfig &&
-      conversationId === 'new' &&
-      endpointsQuery.data &&
-      modelsQuery.data &&
-      !modelsQuery.data?.initial &&
-      !hasSetConversation.current
-    ) {
+    const shouldSetConvo =
+      startupConfig && !hasSetConversation.current && !modelsQuery.data?.initial;
+    /* Early exit if startupConfig is not loaded and conversation is already set and only initial models have loaded */
+    if (!shouldSetConvo) {
+      return;
+    }
+
+    if (conversationId === Constants.NEW_CONVO && endpointsQuery.data && modelsQuery.data) {
       const spec = getDefaultModelSpec(startupConfig.modelSpecs?.list);
 
       newConversation({
@@ -66,14 +64,7 @@ export default function ChatRoute() {
       });
 
       hasSetConversation.current = true;
-    } else if (
-      startupConfig &&
-      initialConvoQuery.data &&
-      endpointsQuery.data &&
-      modelsQuery.data &&
-      !modelsQuery.data?.initial &&
-      !hasSetConversation.current
-    ) {
+    } else if (initialConvoQuery.data && endpointsQuery.data && modelsQuery.data) {
       newConversation({
         template: initialConvoQuery.data,
         /* this is necessary to load all existing settings */
@@ -83,11 +74,9 @@ export default function ChatRoute() {
       });
       hasSetConversation.current = true;
     } else if (
-      startupConfig &&
-      !hasSetConversation.current &&
-      !modelsQuery.data?.initial &&
-      conversationId === 'new' &&
-      assistants
+      conversationId === Constants.NEW_CONVO &&
+      assistantListMap[EModelEndpoint.assistants] &&
+      assistantListMap[EModelEndpoint.azureAssistants]
     ) {
       const spec = getDefaultModelSpec(startupConfig.modelSpecs?.list);
       newConversation({
@@ -105,10 +94,8 @@ export default function ChatRoute() {
       });
       hasSetConversation.current = true;
     } else if (
-      startupConfig &&
-      !hasSetConversation.current &&
-      !modelsQuery.data?.initial &&
-      assistants
+      assistantListMap[EModelEndpoint.assistants] &&
+      assistantListMap[EModelEndpoint.azureAssistants]
     ) {
       newConversation({
         template: initialConvoQuery.data,
@@ -120,10 +107,20 @@ export default function ChatRoute() {
     }
     /* Creates infinite render if all dependencies included due to newConversation invocations exceeding call stack before hasSetConversation.current becomes truthy */
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startupConfig, initialConvoQuery.data, endpointsQuery.data, modelsQuery.data, assistants]);
+  }, [
+    startupConfig,
+    initialConvoQuery.data,
+    endpointsQuery.data,
+    modelsQuery.data,
+    assistantListMap,
+  ]);
 
   if (endpointsQuery.isLoading || modelsQuery.isLoading) {
-    return <Spinner className="m-auto text-black dark:text-white" />;
+    return (
+      <div aria-live="polite" role="status">
+        <Spinner className="m-auto text-black dark:text-white" />
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

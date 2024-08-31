@@ -18,6 +18,7 @@ export default {
   com_sidepanel_hide_panel: 'パネルを隠す',
   com_sidepanel_attach_files: 'ファイルを添付する',
   com_sidepanel_manage_files: 'ファイルを管理',
+  com_sidepanel_conversation_tags: 'ブックマーク',
   com_assistants_capabilities: 'Capabilities',
   com_assistants_knowledge: 'ナレッジ',
   com_assistants_knowledge_info:
@@ -116,7 +117,6 @@ export default {
   com_ui_submit: '送信する',
   com_ui_upload_success: 'アップロード成功',
   com_ui_upload_error: 'ファイルのアップロード中にエラーが発生しました。',
-  com_ui_upload_invalid: '不正なファイルです',
   com_ui_cancel: 'キャンセル',
   com_ui_save: '保存',
   com_ui_save_submit: '保存 & 送信',
@@ -147,8 +147,25 @@ export default {
   com_ui_assistants_output: 'Assistantsの出力',
   com_ui_delete: '削除',
   com_ui_create: '作成',
+  com_ui_share: '共有',
+  com_ui_copy_link: 'リンクをコピー',
+  com_ui_update_link: 'リンクを更新する',
+  com_ui_create_link: 'リンクを作成する',
+  com_ui_share_link_to_chat: 'チャットへの共有リンク',
+  com_ui_share_error: 'チャットの共有リンクの共有中にエラーが発生しました',
+  com_ui_share_retrieve_error: '共有リンクの削除中にエラーが発生しました。',
+  com_ui_share_delete_error: '共有リンクの削除中にエラーが発生しました。',
+  com_ui_share_create_message:
+    'あなたの名前と共有リンクを作成した後のメッセージは、共有されません。',
+  com_ui_share_created_message:
+    'チャットの共有リンクが作成されました。設定から以前共有したチャットを管理できます。',
+  com_ui_share_update_message:
+    'あなたの名前、カスタム指示、共有リンクを作成した後のメッセージは、共有されません。',
+  com_ui_share_updated_message:
+    'チャットの共有リンクが更新されました。設定から以前共有したチャットを管理できます。',
+  com_ui_shared_link_not_found: '共有リンクが見つかりません',
   com_ui_delete_conversation: 'チャットを削除しますか？',
-  com_ui_delete_conversation_confirm: 'このチャットは削除されます。',
+  com_ui_delete_confirm: 'このチャットは削除されます。',
   com_ui_delete_assistant_confirm: 'このアシスタントを削除しますか？ この操作は元に戻せません。',
   com_ui_rename: 'タイトル変更',
   com_ui_archive: 'アーカイブ',
@@ -165,6 +182,20 @@ export default {
   com_ui_terms_of_service: '利用規約',
   com_ui_min_tags: 'これ以上の値を削除できません。少なくとも {0} が必要です。',
   com_ui_max_tags: '最新の値を使用した場合、許可される最大数は {0} です。',
+  com_ui_bookmarks: 'ブックマーク',
+  com_ui_bookmarks_rebuild: '再構築',
+  com_ui_bookmarks_new: '新しいブックマーク',
+  com_ui_bookmark_delete_confirm: 'このブックマークを削除してもよろしいですか？',
+  com_ui_bookmarks_title: 'タイトル',
+  com_ui_bookmarks_count: 'カウント',
+  com_ui_bookmarks_description: '説明',
+  com_ui_bookmarks_create_success: 'ブックマークが正常に作成されました',
+  com_ui_bookmarks_update_success: 'ブックマークが正常に更新されました',
+  com_ui_bookmarks_delete_success: 'ブックマークが正常に削除されました',
+  com_ui_bookmarks_create_error: 'ブックマークの作成中にエラーが発生しました',
+  com_ui_bookmarks_update_error: 'ブックマークの更新中にエラーが発生しました',
+  com_ui_bookmarks_delete_error: 'ブックマークの削除中にエラーが発生しました',
+  com_ui_bookmarks_add_to_conversation: '現在の会話に追加',
   com_auth_error_login:
     '入力された情報ではログインできませんでした。認証情報を確認した上で再度お試しください。',
   com_auth_error_login_rl:
@@ -422,13 +453,21 @@ export default {
   com_nav_export_recursive_or_sequential: '再帰的? or 順次的?',
   com_nav_export_recursive: '再帰的',
   com_nav_export_conversation: '会話をエクスポートする',
+  com_nav_export: 'エクスポート',
+  com_nav_shared_links: '共有リンク',
+  com_nav_shared_links_manage: '管理',
+  com_nav_shared_links_empty: '共有リンクはありません。',
+  com_nav_shared_links_name: 'タイトル',
+  com_nav_shared_links_date_shared: '共有日',
   com_nav_my_files: 'My Files',
   com_nav_theme: 'テーマ',
   com_nav_theme_system: 'システム',
   com_nav_theme_dark: 'ダーク',
   com_nav_theme_light: 'ライト',
+  com_nav_font_size: 'フォントサイズ',
   com_nav_enter_to_send: 'Enterキーでメッセージを送信する',
   com_nav_user_name_display: 'メッセージにユーザー名を表示する',
+  com_nav_save_drafts: 'ローカルにドラフトを保存する',
   com_nav_show_code: 'Code Interpreter を使用する際は常にコードを表示する',
   com_nav_clear_all_chats: 'すべてのチャットを削除する',
   com_nav_confirm_clear: '削除を確定',
@@ -450,11 +489,44 @@ export default {
   com_nav_help_faq: 'ヘルプ & FAQ',
   com_nav_settings: '設定',
   com_nav_search_placeholder: 'メッセージ検索',
+  com_nav_info_bookmarks_rebuild:
+    'ブックマークのカウントが正しくない場合は、ブックマークの情報を再構築してください。ブックマークのカウントが再計算され、データが正しい状態に復元されます。',
   com_nav_setting_general: '一般',
   com_nav_setting_beta: 'ベータ版の機能',
   com_nav_setting_data: 'データ管理',
   com_nav_setting_account: 'アカウント',
   /* The following are AI translated */
+  com_assistants_file_search: 'ファイル検索',
+  com_assistants_file_search_info:
+    'ファイル検索用のベクトル ストアを添付することはまだサポートされていません。Provider Playgroundからそれらを添付するか、スレッド単位でメッセージにファイルを添付してファイル検索を行うことができます。',
+  com_assistants_non_retrieval_model:
+    'このモデルではファイル検索機能は有効になっていません。別のモデルを選択してください。',
+  com_ui_attach_error_openai: '他のエンドポイントにAssistantファイルを添付することはできません',
+  com_ui_attach_warn_endpoint:
+    '互換性のあるツールがない場合、非アシスタントのファイルは無視される可能性があります',
+  com_ui_assistant_deleted: 'アシスタントが正常に削除されました',
+  com_ui_assistant_delete_error: 'アシスタントの削除中にエラーが発生しました。',
+  com_ui_copied: 'コピーしました',
+  com_ui_copy_code: 'コードをコピーする',
+  com_nav_source_chat: 'ソースチャットを表示する',
+  com_ui_date_today: '今日',
+  com_ui_date_yesterday: '昨日',
+  com_ui_date_previous_7_days: '過去7日間',
+  com_ui_date_previous_30_days: '過去30日間',
+  com_ui_date_january: '1月',
+  com_ui_date_february: '2月',
+  com_ui_date_march: '3月',
+  com_ui_date_april: '4月',
+  com_ui_date_may: '5月',
+  com_ui_date_june: '6月',
+  com_ui_date_july: '7月',
+  com_ui_date_august: '8月',
+  com_ui_date_september: '9月',
+  com_ui_date_october: '10月',
+  com_ui_date_november: '11月',
+  com_ui_date_december: '12月',
+  com_ui_nothing_found: '該当するものが見つかりませんでした',
+  com_ui_go_to_conversation: '会話に移動する',
   com_error_invalid_user_key: '無効なキーが提供されました。キーを入力して再試行してください。',
   com_ui_none_selected: '選択されていません',
   com_ui_fork: '分岐',
@@ -490,7 +562,6 @@ export default {
   com_ui_mention:
     'エンドポイント、アシスタント、またはプリセットを素早く切り替えるには、それらを言及してください。',
   com_ui_import_conversation_file_type_error: 'サポートされていないインポート形式です',
-  com_endpoint_messages: 'メッセージ',
   com_endpoint_context_tokens: 'コンテキストトークン数の最大値',
   com_endpoint_context_info:
     'コンテキストに使用できるトークンの最大数です。リクエストごとに送信されるトークン数を制御するために使用します。指定しない場合は、既知のモデルのコンテキストサイズに基づいてシステムのデフォルト値が使用されます。高い値を設定すると、エラーが発生したり、トークンコストが高くなる可能性があります。',
@@ -510,7 +581,7 @@ export default {
   com_nav_lang_polish: 'ポーランド語',
   com_nav_lang_brazilian_portuguese: 'ブラジルポルトガル語',
   com_nav_lang_russian: 'ロシア語',
-  com_nav_lang_japanese: 'ナビゲーションメニュー',
+  com_nav_lang_japanese: '日本語',
   com_nav_lang_swedish: 'スウェーデン語',
   com_nav_lang_korean: '韓国語',
   com_nav_lang_vietnamese: 'ベトナム語',
@@ -576,6 +647,10 @@ export const comparisons = {
   com_sidepanel_manage_files: {
     english: 'Manage Files',
     translated: 'ファイルを管理',
+  },
+  com_sidepanel_conversation_tags: {
+    english: 'Bookmarks',
+    translated: 'ブックマーク',
   },
   com_assistants_capabilities: {
     english: 'Capabilities',
@@ -1080,11 +1155,56 @@ export const comparisons = {
     english: 'Create',
     translated: '作成',
   },
+  com_ui_share: {
+    english: 'Share',
+    translated: '共有',
+  },
+  com_ui_share_link_to_chat: {
+    english: 'Share link to chat',
+    translated: 'チャットへの共有リンク',
+  },
+  com_ui_share_retrieve_error: {
+    english: 'There was an error deleting the shared link.',
+    translated: '共有リンクの削除中にエラーが発生しました。',
+  },
+  com_ui_share_delete_error: {
+    english: 'There was an error deleting the shared link.',
+    translated: '共有リンクの削除中にエラーが発生しました。',
+  },
+  com_ui_share_error: {
+    english: 'There was an error sharing the chat link',
+    translated: 'チャットの共有リンクの共有中にエラーが発生しました',
+  },
+  com_ui_share_create_message: {
+    english: 'Your name and any messages you add after sharing stay private.',
+    translated: 'あなたの名前と共有リンクを作成した後のメッセージは、共有されません。',
+  },
+  com_ui_share_created_message: {
+    english:
+      'A shared link to your chat has been created. Manage previously shared chats at any time via Settings.',
+    translated:
+      'チャットへの公開された共有リンクが作成されました。設定から以前共有したチャットを管理できます。',
+  },
+  com_ui_share_update_message: {
+    english: 'Your name, custom instructions, and any messages you add after sharing stay private.',
+    translated:
+      'あなたの名前、カスタム指示、共有リンクを作成した後のメッセージは、共有されません。',
+  },
+  com_ui_share_updated_message: {
+    english:
+      'A shared link to your chat has been updated. Manage previously shared chats at any time via Settings.',
+    translated:
+      'チャットへの公開された共有リンクが更新されました。設定から以前共有したチャットを管理できます。',
+  },
+  com_ui_shared_link_not_found: {
+    english: 'Shared link not found',
+    translated: '共有リンクが見つかりません',
+  },
   com_ui_delete_conversation: {
     english: 'Delete chat?',
     translated: 'チャットを削除しますか？',
   },
-  com_ui_delete_conversation_confirm: {
+  com_ui_delete_confirm: {
     english: 'This will delete',
     translated: 'このチャットは削除されます。',
   },
@@ -1149,6 +1269,62 @@ export const comparisons = {
   com_ui_max_tags: {
     english: 'Maximum number allowed is {0}, using latest values.',
     translated: '最新の値を使用した場合、許可される最大数は {0} です。',
+  },
+  com_ui_bookmarks: {
+    english: 'Bookmarks',
+    translated: 'ブックマーク',
+  },
+  com_ui_bookmarks_rebuild: {
+    english: 'Rebuild',
+    translated: '再構築',
+  },
+  com_ui_bookmarks_new: {
+    english: 'New Bookmark',
+    translated: '新しいブックマーク',
+  },
+  com_ui_bookmark_delete_confirm: {
+    english: 'Are you sure you want to delete this bookmark?',
+    translated: 'このブックマークを削除してもよろしいですか？',
+  },
+  com_ui_bookmarks_title: {
+    english: 'Title',
+    translated: 'タイトル',
+  },
+  com_ui_bookmarks_count: {
+    english: 'Count',
+    translated: 'カウント',
+  },
+  com_ui_bookmarks_description: {
+    english: 'Description',
+    translated: '説明',
+  },
+  com_ui_bookmarks_create_success: {
+    english: 'Bookmark created successfully',
+    translated: 'ブックマークが正常に作成されました',
+  },
+  com_ui_bookmarks_update_success: {
+    english: 'Bookmark updated successfully',
+    translated: 'ブックマークが正常に更新されました',
+  },
+  com_ui_bookmarks_delete_success: {
+    english: 'Bookmark deleted successfully',
+    translated: 'ブックマークが正常に削除されました',
+  },
+  com_ui_bookmarks_create_error: {
+    english: 'There was an error creating the bookmark',
+    translated: 'ブックマークの作成中にエラーが発生しました',
+  },
+  com_ui_bookmarks_update_error: {
+    english: 'There was an error updating the bookmark',
+    translated: 'ブックマークの更新中にエラーが発生しました',
+  },
+  com_ui_bookmarks_delete_error: {
+    english: 'There was an error deleting the bookmark',
+    translated: 'ブックマークの削除中にエラーが発生しました',
+  },
+  com_ui_bookmarks_add_to_conversation: {
+    english: 'Add to current conversation',
+    translated: '現在の会話に追加',
   },
   com_auth_error_login: {
     english:
@@ -2069,6 +2245,30 @@ export const comparisons = {
     english: 'Export conversation',
     translated: '会話をエクスポートする',
   },
+  com_nav_export: {
+    english: 'Export',
+    translated: 'エクスポート',
+  },
+  com_nav_shared_links: {
+    english: 'Shared links',
+    translated: '共有リンク',
+  },
+  com_nav_shared_links_manage: {
+    english: 'Manage',
+    translated: '管理',
+  },
+  com_nav_shared_links_empty: {
+    english: 'You have no shared links.',
+    translated: '共有リンクはありません。',
+  },
+  com_nav_shared_links_name: {
+    english: 'Name',
+    translated: 'タイトル',
+  },
+  com_nav_shared_links_date_shared: {
+    english: 'Date shared',
+    translated: '共有日',
+  },
   com_nav_my_files: {
     english: 'My Files',
     translated: 'My Files',
@@ -2096,6 +2296,10 @@ export const comparisons = {
   com_nav_user_name_display: {
     english: 'Display username in messages',
     translated: 'メッセージにユーザー名を表示する',
+  },
+  com_nav_save_drafts: {
+    english: 'Save drafts locally',
+    translated: 'ローカルにドラフトを保存する',
   },
   com_nav_show_code: {
     english: 'Always show code when using code interpreter',
@@ -2177,6 +2381,12 @@ export const comparisons = {
     english: 'Search messages',
     translated: 'メッセージ検索',
   },
+  com_nav_info_bookmarks_rebuild: {
+    english:
+      'If the bookmark count is incorrect, please rebuild the bookmark information. The bookmark count will be recalculated and the data will be restored to its correct state.',
+    translated:
+      'ブックマークのカウントが正しくない場合は、ブックマークの情報を再構築してください。ブックマークのカウントが再計算され、データが正しい状態に復元されます。',
+  },
   com_nav_setting_general: {
     english: 'General',
     translated: '一般',
@@ -2192,6 +2402,134 @@ export const comparisons = {
   com_nav_setting_account: {
     english: 'Account',
     translated: 'アカウント',
+  },
+  com_assistants_file_search: {
+    english: 'File Search',
+    translated: 'ファイル検索',
+  },
+  com_assistants_file_search_info: {
+    english:
+      'Attaching vector stores for File Search is not yet supported. You can attach them from the Provider Playground or attach files to messages for file search on a thread basis.',
+    translated:
+      'ファイル検索用のベクトル ストアを添付することはまだサポートされていません。Provider Playgroundからそれらを添付するか、スレッド単位でメッセージにファイルを添付してファイル検索を行うことができます。',
+  },
+  com_assistants_non_retrieval_model: {
+    english: 'File search is not enabled on this model. Please select another model.',
+    translated:
+      'このモデルではファイル検索機能は有効になっていません。別のモデルを選択してください。',
+  },
+  com_ui_attach_error_openai: {
+    english: 'Cannot attach Assistant files to other endpoints',
+    translated: '他のエンドポイントにAssistantファイルを添付することはできません',
+  },
+  com_ui_attach_warn_endpoint: {
+    english: 'Non-Assistant files may be ignored without a compatible tool',
+    translated:
+      '互換性のあるツールがない場合、非アシスタントのファイルは無視される可能性があります',
+  },
+  com_ui_assistant_deleted: {
+    english: 'Successfully deleted assistant',
+    translated: 'アシスタントが正常に削除されました',
+  },
+  com_ui_assistant_delete_error: {
+    english: 'There was an error deleting the assistant',
+    translated: 'アシスタントの削除中にエラーが発生しました。',
+  },
+  com_ui_copied: {
+    english: 'Copied!',
+    translated: 'コピーしました',
+  },
+  com_ui_copy_code: {
+    english: 'Copy code',
+    translated: 'コードをコピーする',
+  },
+  com_ui_copy_link: {
+    english: 'Copy link',
+    translated: 'リンクをコピー',
+  },
+  com_ui_update_link: {
+    english: 'Update link',
+    translated: 'リンクを更新する',
+  },
+  com_ui_create_link: {
+    english: 'Create link',
+    translated: 'リンクを作成する',
+  },
+  com_nav_source_chat: {
+    english: 'View source chat',
+    translated: 'ソースチャットを表示する',
+  },
+  com_ui_date_today: {
+    english: 'Today',
+    translated: '今日',
+  },
+  com_ui_date_yesterday: {
+    english: 'Yesterday',
+    translated: '昨日',
+  },
+  com_ui_date_previous_7_days: {
+    english: 'Previous 7 days',
+    translated: '過去7日間',
+  },
+  com_ui_date_previous_30_days: {
+    english: 'Previous 30 days',
+    translated: '過去30日間',
+  },
+  com_ui_date_january: {
+    english: 'January',
+    translated: '1月',
+  },
+  com_ui_date_february: {
+    english: 'February',
+    translated: '2月',
+  },
+  com_ui_date_march: {
+    english: 'March',
+    translated: '3月',
+  },
+  com_ui_date_april: {
+    english: 'April',
+    translated: '4月',
+  },
+  com_ui_date_may: {
+    english: 'May',
+    translated: '5月',
+  },
+  com_ui_date_june: {
+    english: 'June',
+    translated: '6月',
+  },
+  com_ui_date_july: {
+    english: 'July',
+    translated: '7月',
+  },
+  com_ui_date_august: {
+    english: 'August',
+    translated: '8月',
+  },
+  com_ui_date_september: {
+    english: 'September',
+    translated: '9月',
+  },
+  com_ui_date_october: {
+    english: 'October',
+    translated: '10月',
+  },
+  com_ui_date_november: {
+    english: 'November',
+    translated: '11月',
+  },
+  com_ui_date_december: {
+    english: 'December',
+    translated: '12月',
+  },
+  com_ui_nothing_found: {
+    english: 'Nothing found',
+    translated: '該当するものが見つかりませんでした',
+  },
+  com_ui_go_to_conversation: {
+    english: 'Go to conversation',
+    translated: '会話に移動する',
   },
   com_error_invalid_user_key: {
     english: 'Invalid key provided. Please provide a key and try again.',
@@ -2313,10 +2651,6 @@ export const comparisons = {
     english: 'Unsupported import type',
     translated: 'サポートされていないインポート形式です',
   },
-  com_endpoint_messages: {
-    english: 'Messages',
-    translated: 'メッセージ',
-  },
   com_endpoint_context_tokens: {
     english: 'Max Context Tokens',
     translated: 'コンテキストトークン数の最大値',
@@ -2391,7 +2725,7 @@ export const comparisons = {
   },
   com_nav_lang_japanese: {
     english: '日本語',
-    translated: 'ナビゲーションメニュー',
+    translated: '日本語',
   },
   com_nav_lang_swedish: {
     english: 'Svenska',

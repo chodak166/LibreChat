@@ -37,7 +37,7 @@ async function loadCustomConfig() {
     if (!customConfig) {
       i === 0 &&
         logger.info(
-          'Custom config file missing or YAML format invalid.\n\nCheck out the latest config file guide for configurable options and features.\nhttps://docs.librechat.ai/install/configuration/custom_config.html\n\n',
+          'Custom config file missing or YAML format invalid.\n\nCheck out the latest config file guide for configurable options and features.\nhttps://www.librechat.ai/docs/configuration/librechat_yaml\n\n',
         );
       i === 0 && i++;
       return null;
@@ -72,12 +72,32 @@ Please specify a correct \`imageOutputType\` value (case-sensitive).
       - ${EImageOutputType.WEBP}
       
       Refer to the latest config file guide for more information:
-      https://docs.librechat.ai/install/configuration/custom_config.html`,
+      https://www.librechat.ai/docs/configuration/librechat_yaml`,
     );
   }
   if (!result.success) {
-    i === 0 && logger.error(`Invalid custom config file at ${configPath}`, result.error);
-    i === 0 && i++;
+    let errorMessage = `Invalid custom config file at ${configPath}:
+${JSON.stringify(result.error, null, 2)}`;
+
+    if (i === 0) {
+      logger.error(errorMessage);
+      const speechError = result.error.errors.find(
+        (err) =>
+          err.code === 'unrecognized_keys' &&
+          (err.message?.includes('stt') || err.message?.includes('tts')),
+      );
+
+      if (speechError) {
+        logger.warn(`
+The Speech-to-text and Text-to-speech configuration format has recently changed.
+If you're getting this error, please refer to the latest documentation:
+
+https://www.librechat.ai/docs/configuration/stt_tts`);
+      }
+
+      i++;
+    }
+
     return null;
   } else {
     logger.info('Custom config file loaded:');

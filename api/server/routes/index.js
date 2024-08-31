@@ -18,6 +18,10 @@ const config = require('./config');
 const assistants = require('./assistants');
 const files = require('./files');
 const staticRoute = require('./static');
+const share = require('./share');
+const categories = require('./categories');
+const roles = require('./roles');
+const tags = require('./tags');
 
 module.exports = {
   search,
@@ -40,4 +44,8 @@ module.exports = {
   assistants,
   files,
   staticRoute,
+  share,
+  categories,
+  roles,
+  tags,
 };

@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from 'react';
-import { Combobox } from '~/components/ui';
-import { EModelEndpoint, defaultOrderQuery, LocalStorageKeys } from 'librechat-data-provider';
-import type { SwitcherProps } from '~/common';
-import { useSetIndexOptions, useSelectAssistant, useLocalize } from '~/hooks';
+import { isAssistantsEndpoint, LocalStorageKeys } from 'librechat-data-provider';
+import type { AssistantsEndpoint } from 'librechat-data-provider';
+import type { SwitcherProps, AssistantListItem } from '~/common';
+import { useSetIndexOptions, useSelectAssistant, useLocalize, useAssistantListMap } from '~/hooks';
 import { useChatContext, useAssistantsMapContext } from '~/Providers';
-import { useListAssistantsQuery } from '~/data-provider';
+import ControlCombobox from '~/components/ui/ControlCombobox';
 import Icon from '~/components/Endpoints/Icon';
 
 export default function AssistantSwitcher({ isCollapsed }: SwitcherProps) {
@@ -15,26 +15,29 @@ export default function AssistantSwitcher({ isCollapsed }: SwitcherProps) {
   /* `selectedAssistant` must be defined with `null` to cause re-render on update */
   const { assistant_id: selectedAssistant = null, endpoint } = conversation ?? {};
 
-  const { data: assistants = [] } = useListAssistantsQuery(defaultOrderQuery, {
-    select: (res) => res.data.map(({ id, name, metadata }) => ({ id, name, metadata })),
-  });
-
+  const assistantListMap = useAssistantListMap((res) =>
+    res.data.map(({ id, name, metadata }) => ({ id, name, metadata })),
+  );
+  const assistants: Omit<AssistantListItem, 'model'>[] = useMemo(
+    () => assistantListMap[endpoint ?? ''] ?? [],
+    [endpoint, assistantListMap],
+  );
   const assistantMap = useAssistantsMapContext();
-  const { onSelect } = useSelectAssistant();
+  const { onSelect } = useSelectAssistant(endpoint as AssistantsEndpoint);
 
   useEffect(() => {
     if (!selectedAssistant && assistants && assistants.length && assistantMap) {
       const assistant_id =
-        localStorage.getItem(`${LocalStorageKeys.ASST_ID_PREFIX}${index}`) ??
+        localStorage.getItem(`${LocalStorageKeys.ASST_ID_PREFIX}${index}${endpoint}`) ??
         assistants[0]?.id ??
         '';
-      const assistant = assistantMap?.[assistant_id];
+      const assistant = assistantMap[endpoint ?? ''][assistant_id];
 
       if (!assistant) {
         return;
       }
 
-      if (endpoint !== EModelEndpoint.assistants) {
+      if (!isAssistantsEndpoint(endpoint)) {
         return;
       }
 
@@ -43,27 +46,27 @@ export default function AssistantSwitcher({ isCollapsed }: SwitcherProps) {
     }
   }, [index, assistants, selectedAssistant, assistantMap, endpoint, setOption]);
 
-  const currentAssistant = assistantMap?.[selectedAssistant ?? ''];
+  const currentAssistant = assistantMap?.[endpoint ?? '']?.[selectedAssistant ?? ''];
 
   const assistantOptions = useMemo(() => {
     return assistants.map((assistant) => {
       return {
-        label: assistant.name ?? '',
+        label: (assistant.name as string | null) ?? '',
         value: assistant.id,
         icon: (
           <Icon
             isCreatedByUser={false}
-            endpoint={EModelEndpoint.assistants}
-            assistantName={assistant.name ?? ''}
-            iconURL={(assistant.metadata?.avatar as string) ?? ''}
+            endpoint={endpoint}
+            assistantName={(assistant.name as string | null) ?? ''}
+            iconURL={assistant.metadata?.avatar ?? ''}
           />
         ),
       };
     });
-  }, [assistants]);
+  }, [assistants, endpoint]);
 
   return (
-    <Combobox
+    <ControlCombobox
       selectedValue={currentAssistant?.id ?? ''}
       displayValue={
         assistants.find((assistant) => assistant.id === selectedAssistant)?.name ??
@@ -78,9 +81,9 @@ export default function AssistantSwitcher({ isCollapsed }: SwitcherProps) {
       SelectIcon={
         <Icon
           isCreatedByUser={false}
-          endpoint={EModelEndpoint.assistants}
+          endpoint={endpoint}
           assistantName={currentAssistant?.name ?? ''}
-          iconURL={(currentAssistant?.metadata?.avatar as string) ?? ''}
+          iconURL={currentAssistant?.metadata?.avatar ?? ''}
         />
       }
     />

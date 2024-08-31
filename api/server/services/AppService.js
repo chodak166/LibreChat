@@ -7,6 +7,7 @@ const handleRateLimits = require('./Config/handleRateLimits');
 const { loadDefaultInterface } = require('./start/interface');
 const { azureConfigSetup } = require('./start/azureOpenAI');
 const { loadAndFormatTools } = require('./ToolService');
+const { initializeRoles } = require('~/models/Role');
 const paths = require('~/config/paths');
 
 /**
@@ -16,11 +17,13 @@ const paths = require('~/config/paths');
  * @param {Express.Application} app - The Express application object.
  */
 const AppService = async (app) => {
+  await initializeRoles();
   /** @type {TCustomConfig}*/
   const config = (await loadCustomConfig()) ?? {};
   const configDefaults = getConfigDefaults();
 
   const filteredTools = config.filteredTools;
+  const includedTools = config.includedTools;
   const fileStrategy = config.fileStrategy ?? configDefaults.fileStrategy;
   const imageOutputType = config?.imageOutputType ?? configDefaults.imageOutputType;
 
@@ -37,23 +40,26 @@ const AppService = async (app) => {
   const availableTools = loadAndFormatTools({
     directory: paths.structuredTools,
     adminFilter: filteredTools,
+    adminIncluded: includedTools,
   });
 
   const socialLogins =
     config?.registration?.socialLogins ?? configDefaults?.registration?.socialLogins;
-  const interfaceConfig = loadDefaultInterface(config, configDefaults);
+  const interfaceConfig = await loadDefaultInterface(config, configDefaults);
+
+  const defaultLocals = {
+    paths,
+    fileStrategy,
+    socialLogins,
+    filteredTools,
+    includedTools,
+    availableTools,
+    imageOutputType,
+    interfaceConfig,
+  };
 
   if (!Object.keys(config).length) {
-    app.locals = {
-      paths,
-      fileStrategy,
-      socialLogins,
-      filteredTools,
-      availableTools,
-      imageOutputType,
-      interfaceConfig,
-    };
-
+    app.locals = defaultLocals;
     return;
   }
 
@@ -61,31 +67,48 @@ const AppService = async (app) => {
   handleRateLimits(config?.rateLimits);
 
   const endpointLocals = {};
+  const endpoints = config?.endpoints;
 
-  if (config?.endpoints?.[EModelEndpoint.azureOpenAI]) {
+  if (endpoints?.[EModelEndpoint.azureOpenAI]) {
     endpointLocals[EModelEndpoint.azureOpenAI] = azureConfigSetup(config);
     checkAzureVariables();
   }
 
-  if (config?.endpoints?.[EModelEndpoint.azureOpenAI]?.assistants) {
-    endpointLocals[EModelEndpoint.assistants] = azureAssistantsDefaults();
+  if (endpoints?.[EModelEndpoint.azureOpenAI]?.assistants) {
+    endpointLocals[EModelEndpoint.azureAssistants] = azureAssistantsDefaults();
   }
 
-  if (config?.endpoints?.[EModelEndpoint.assistants]) {
+  if (endpoints?.[EModelEndpoint.azureAssistants]) {
+    endpointLocals[EModelEndpoint.azureAssistants] = assistantsConfigSetup(
+      config,
+      EModelEndpoint.azureAssistants,
+      endpointLocals[EModelEndpoint.azureAssistants],
+    );
+  }
+
+  if (endpoints?.[EModelEndpoint.assistants]) {
     endpointLocals[EModelEndpoint.assistants] = assistantsConfigSetup(
       config,
+      EModelEndpoint.assistants,
       endpointLocals[EModelEndpoint.assistants],
     );
   }
 
+  if (endpoints?.[EModelEndpoint.openAI]) {
+    endpointLocals[EModelEndpoint.openAI] = endpoints[EModelEndpoint.openAI];
+  }
+  if (endpoints?.[EModelEndpoint.google]) {
+    endpointLocals[EModelEndpoint.google] = endpoints[EModelEndpoint.google];
+  }
+  if (endpoints?.[EModelEndpoint.anthropic]) {
+    endpointLocals[EModelEndpoint.anthropic] = endpoints[EModelEndpoint.anthropic];
+  }
+  if (endpoints?.[EModelEndpoint.gptPlugins]) {
+    endpointLocals[EModelEndpoint.gptPlugins] = endpoints[EModelEndpoint.gptPlugins];
+  }
+
   app.locals = {
-    paths,
-    socialLogins,
-    fileStrategy,
-    filteredTools,
-    availableTools,
-    imageOutputType,
-    interfaceConfig,
+    ...defaultLocals,
     modelSpecs: config.modelSpecs,
     fileConfig: config?.fileConfig,
     secureImageLinks: config?.secureImageLinks,
