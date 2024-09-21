@@ -19,16 +19,19 @@ import type {
 } from 'librechat-data-provider';
 import type { SetterOrUpdater, Resetter } from 'recoil';
 import type { TResData, TFinalResData, ConvoGenerator } from '~/common';
+import type { TGenTitleMutation } from '~/data-provider';
 import {
   scrollToEnd,
   addConversation,
+  getAllContentText,
   deleteConversation,
   updateConversation,
   getConversationById,
 } from '~/utils';
 import useContentHandler from '~/hooks/SSE/useContentHandler';
-import type { TGenTitleMutation } from '~/data-provider';
+import useStepHandler from '~/hooks/SSE/useStepHandler';
 import { useAuthContext } from '~/hooks/AuthContext';
+import { MESSAGE_UPDATE_INTERVAL } from '~/common';
 import { useLiveAnnouncer } from '~/Providers';
 import store from '~/store';
 
@@ -54,8 +57,6 @@ export type EventHandlerParams = {
   resetLatestMessage?: Resetter;
 };
 
-const MESSAGE_UPDATE_INTERVAL = 7000;
-
 export default function useEventHandlers({
   genTitle,
   setMessages,
@@ -77,6 +78,13 @@ export default function useEventHandlers({
   const { token } = useAuthContext();
 
   const contentHandler = useContentHandler({ setMessages, getMessages });
+  const stepHandler = useStepHandler({
+    setMessages,
+    getMessages,
+    announcePolite,
+    setIsSubmitting,
+    lastAnnouncementTimeRef,
+  });
 
   const messageHandler = useCallback(
     (data: string | undefined, submission: EventSubmission) => {
@@ -354,7 +362,7 @@ export default function useEventHandlers({
       });
 
       announcePolite({
-        message: responseMessage?.text ?? '',
+        message: getAllContentText(responseMessage),
       });
 
       /* Update messages; if assistants endpoint, client doesn't receive responseMessage */
@@ -586,6 +594,7 @@ export default function useEventHandlers({
   );
 
   return {
+    stepHandler,
     syncHandler,
     finalHandler,
     errorHandler,
